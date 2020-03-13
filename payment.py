@@ -124,16 +124,22 @@ def execute_payment(payment_id):
     result={}
     #match payer id with per parent?
     if payment.execute({"payer_id":payer_id}):
-        result={'status':200，"message"："Payment execute successfully"}
+        result={'status':200,"message":"Payment execute successfully"}
     else:
         print(payment.error) # Error Hash
+        result={'status':500,"message":payment.error}
+    return result
 
 @app.route('/payment/<int:payment_id>',methods=['PUT'])
 def update_payment_status(payment_id):
-    payment=payment.
-    
-
+    payment=Payment.query.filter_by(payment_id=payment_id)
+    paymentpaypal = paypalrestsdk.Payment.find(payment_id)
+    if "state" in paymentpaypal == 'Completed':
+       payment.payment_status='Completed'
+       date=paymentpaypal["update_time"]
+       payment_date=date
+       db.session.commit()
+    return jsonify(payment.serialize())
  
- 
-
-
+if __name__ == '__main__': 
+    app.run(debug=True)
