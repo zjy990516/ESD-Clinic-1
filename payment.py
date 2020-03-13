@@ -4,9 +4,10 @@ from paypalrestsdk import Payout, ResourceNotFound
 
 
 paypalrestsdk.configure({
+    ## merchant
   "mode": "sandbox", # sandbox or live
-  "client_id": "EBWKjlELKMYqRNQ6sYvFo64FtaRLRR5BdHEESmha49TM",
-  "client_secret": "EO422dn3gQLgDbuwqTjzrFgFtaRLRR5BdHEESmha49TM" })
+  "client_id": "AbuiDmqZ1ws36c63l4vTwBEtr9hjsKyGFGJJixKmsjOpMg554FboAQXi7oGFsEFOah3GNBYgkjzLmede",
+  "client_secret": "EEHSsxKZ59WJcecaZQWKvzUkhyD210AothEdoYOBOjBrEO29IR0fzW2nlwuZN2DGTYt44yGaT_9EwU7p" })
 
 from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
@@ -50,19 +51,21 @@ class Payment(db.MOdel):
         return dto
 #get data posted by treatment
 
-
 @app.route("/payment_id")
 def get_all():
     return {'payments:':[payment.json() for payment in Payment.query.all() ]}
+
 
 @app.route("/payment/paymemt_id")
 def find_payment_by_id(payment_id):
     payment=payment.query.filter_by(payment_id=payment_id).first()
     if payment:
         return payment.json()
+     return jsonify({"message": "Payment not found."}), 404
+
 
 #generate order(implementing paypal API)
-@app.route("payment/payment_id,method=[POST]")
+@app.route("/payment/<string:payment_id>",method=[POST])
 def create_payment():
     treatment_id=request.json['treatment_id']
     price=request.json['price']
@@ -103,27 +106,25 @@ def create_payment():
             #authorize the payment
             for link in payment.links:
                 if link.rel=='approval_url':
-                    if link.rel == "approval_url":
                 # Convert to str to avoid google appengine unicode issue
                 # https://github.com/paypal/rest-api-sdk-python/pull/58
-                        approval_url = str(link.href)
-                        print("Redirect for approval: %s" % (approval_url))
-                        db.session.add(payment)
-                        db.session.commit()
+                    approval_url = str(link.href)
+                    print("Redirect for approval: %s" % (approval_url))
+                    db.session.add(payment)
+                    db.session.commit()
         except Exception as e:
             status=500
     else:
         print(payment.error)
         result = {'status':500, "message":"An error occurred when creating the order in DB", "error":str(payment.error)}
-
+"message"
        
 def execute_payment(payment_id):
     payment = paypalrestsdk.Payment.find(payment_id)
     result={}
     #match payer id with per parent?
     if payment.execute({"payer_id":payer_id}):
-        print("Payment execute successfully")
-        result={'status':200,.}
+        result={'status':200，"message"："Payment execute successfully"}
     else:
         print(payment.error) # Error Hash
 
