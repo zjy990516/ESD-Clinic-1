@@ -118,7 +118,7 @@ def create_payment(payment_id):
     else:
         print(payment.error)
         result = {'status':500, "message":"An error occurred when creating the order in DB", "error":str(payment.error)}
-"message"
+
        
 def execute_payment(payment_id):
     payment = paypalrestsdk.Payment.find(payment_id)
