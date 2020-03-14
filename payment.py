@@ -1,6 +1,7 @@
 import paypalrestsdk
 import logging
 from paypalrestsdk import Payout, ResourceNotFound
+from paypalrestsdk import Invoice
 
 
 paypalrestsdk.configure({
@@ -18,7 +19,7 @@ import json
 import pika
 
 app=Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root@localhost:3306/payment'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://[username]:[password]@[hostname]:[port]/[database_name]' 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db=SQLAlchemy(app)
@@ -30,7 +31,7 @@ db=SQLAlchemy(app)
 
 
 
-class Payment(db.MOdel):
+class Payment(db.Model):
     __tablename__ = 'payment'
     payment_id = db.Column(db.Integer, primary_key=True)
     treatment_id = db.Column(db.Integer, db.ForeignKey('treatment_id'),nullable=False)
@@ -61,12 +62,12 @@ def find_payment_by_id(payment_id):
     payment=payment.query.filter_by(payment_id=payment_id).first()
     if payment:
         return payment.json()
-     return jsonify({"message": "Payment not found."}), 404
+    return jsonify({"message": "Payment not found."}), 404
 
 
 #generate order(implementing paypal API)
-@app.route("/payment/<string:payment_id>",method=[POST])
-def create_payment():
+@app.route("/payment/<string:payment_id>",methods=['POST'])
+def create_payment(payment_id):
     treatment_id=request.json['treatment_id']
     price=request.json['price']
     status=201
@@ -140,6 +141,31 @@ def update_payment_status(payment_id):
        payment_date=date
        db.session.commit()
     return jsonify(payment.serialize())
+
+# def generate_invoice(payment_id):
+#     payment=Payment.query.filter_by(payment_id=payment_id)
+#     paymentpaypal = paypalrestsdk.Payment.find(payment_id)
+#     invoice = Invoice({
+#     'merchant_info': {
+#         "email": "default@merchant.com",
+#     },
+#     "billing_info": [{
+#         "email": "example@example.com"
+#     }],
+#     "items": [{
+#         "name": "Widgets",
+#         "quantity": 20,
+#         "unit_price": {
+#             "currency": "USD",
+#             "value": 2
+#         }
+#         }],
+#     })
+
+# if Invoice.create():
+#     print(json.dumps(Invoice.to_dict(), sort_keys=False, indent=4))
+# else:
+#     print(Invoice.error)
  
 if __name__ == '__main__': 
-    app.run(debug=True)
+    app.run(port=5000,debug=True)
