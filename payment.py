@@ -25,7 +25,7 @@ import json
 import pika
 
 app=Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://g2t5:rootroot@esd-clinic.c6n8cu8sp46j.us-east-1.rds.amazonaws.com:3306/payment'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:root@localhost:3306/payment.py'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
